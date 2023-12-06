@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pn.mapper.RoleMapper">
+
+    <!--添加角色-->
+    <insert id="insertRole">
+        insert into role values(
+            null, #{roleName}, #{roleDesc}, #{roleCode}, 0, #{createBy}, now(), null, null
+        )
+    </insert>
+
+    <!--根据角色id修改角色的状态-->
+    <update id="updateRoleStateByRoleId">
+        update role set role_state = #{roleState} where role_id = #{roleId}
+    </update>
+
+    <!--根据角色id修改角色描述-->
+    <update id="setDescByRid">
+        update role
+        set role_desc = #{roleDesc}, update_by = #{updateBy}, update_time = now()
+        where role_id = #{roleId}
+    </update>
+
+    <!--根据角色id删除角色的方法-->
+    <delete id="removeRoleById">
+        delete from role where role_id = #{roleId}
+    </delete>
+
+    <!--查询所有角色-->
+    <select id="findAllRole" resultType="com.pn.entity.Role">
+        select * from role where role_state = 1
+    </select>
+
+    <!--根据用户id查询用户所分配的角色-->
+    <select id="findRoleByUserId" resultType="com.pn.entity.Role">
+        select t2.*
+        from user_role t1, role t2
+        where t1.role_id = t2.role_id
+        and t2.role_state = 1 and t1.user_id = #{userId}
+    </select>
+
+    <!--根据角色名查询角色id-->
+    <select id="findRoleIdByRoleName" resultType="java.lang.Integer">
+        select role_id from role where role_name = #{roleName}
+    </select>
+
+    <!--查询角色行数-->
+    <select id="findRoleRowCount" resultType="java.lang.Integer">
+        select count(*) from role
+        <where>
+            <if test="roleName != null and roleName != ''">
+                and role_name like concat('%', #{roleName}, '%')
+            </if>
+            <if test="roleCode != null and roleCode != ''">
+                and role_code like concat('%', #{roleCode}, '%')
+            </if>
+            <if test="roleState != null and roleState != ''">
+                and role_state = #{roleState}
+            </if>
+        </where>
+    </select>
+
+    <!--分页查询角色-->
+    <select id="findRolePage" resultType="com.pn.entity.Role">
+        select t1.*, t2.user_code getCode
+        from role t1, user_info t2
+        where t1.create_by = t2.user_id
+        <if test="role.roleName != null and role.roleName != ''">
+            and t1.role_name like concat('%', #{role.roleName}, '%')
+        </if>
+        <if test="role.roleCode != null and role.roleCode != ''">
+            and t1.role_code like concat('%', #{role.roleCode}, '%')
+        </if>
+        <if test="role.roleState != null and role.roleState != ''">
+            and t1.role_state = #{role.roleState}
+        </if>
+        order by t1.create_time desc
+        limit #{page.limitIndex}, #{page.pageSize}
+    </select>
+
+    <!--根据角色名称或角色代码查询角色-->
+    <select id="findRoleByNameOrCode" resultType="com.pn.entity.Role">
+        select * from role where role_name = #{roleName} or role_code = #{roleCode}
+    </select>
+</mapper>

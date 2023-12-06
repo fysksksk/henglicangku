@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.pn.mapper.StoreMapper">
+
+    <!--添加仓库-->
+    <insert id="insertStore">
+        insert into store values(
+            null, #{storeName}, #{storeNum}, #{storeAddress}, #{concat}, #{phone}
+        )
+    </insert>
+
+    <!--根据仓库编号修改仓库信息-->
+    <update id="setStoreByStoreNum">
+        update store set store_name = #{storeName}, store_address = #{storeAddress}, concat = #{concat}, phone = #{phone}
+        where store_num = #{storeNum}
+    </update>
+
+    <!--根据仓库id删除仓库-->
+    <delete id="removeStoreByStoreId">
+        delete from store where store_id = #{storeId}
+    </delete>
+
+    <!--查询所有仓库-->
+    <select id="findAllStore" resultType="com.pn.entity.Store">
+        select * from store
+    </select>
+
+    <!--查询每个仓库的商品数量-->
+    <select id="findStoreCount" resultType="com.pn.vo.StoreCountVo">
+        select t1.store_id, t1.store_name, ifnull(sum(product_invent), 0) as totalInvent
+        from store t1, product t2
+        where t1.store_id = t2.store_id
+        group by t1.store_id, t1.store_name
+    </select>
+
+    <!--查询仓库总行数-->
+    <select id="findStoreRowCount" resultType="java.lang.Integer">
+        select count(*) from store
+        <where>
+            <if test="storeName != null and storeName != ''">
+                and store_name like concat('%', concat(#{storeName}), '%')
+            </if>
+            <if test="storeAddress != null and storeAddress != ''">
+                and store_address like concat('%', #{storeAddress}, '%')
+            </if>
+            <if test="concat != null and concat != ''">
+                and concat like concat('%', #{concat}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                and phone = #{phone}
+            </if>
+        </where>
+    </select>
+
+    <!--分页查询仓库-->
+    <select id="findStorePage" resultType="com.pn.entity.Store">
+        select * from store
+        <where>
+            <if test="store.storeName != null and store.storeName != ''">
+                and store_name like concat('%', concat(#{store.storeName}), '%')
+            </if>
+            <if test="store.storeAddress != null and store.storeAddress != ''">
+                and store_address like concat('%', #{store.storeAddress}, '%')
+            </if>
+            <if test="store.concat != null and store.concat != ''">
+                and concat like concat('%', #{store.concat}, '%')
+            </if>
+            <if test="store.phone != null and store.phone != ''">
+                and phone = #{store.phone}
+            </if>
+        </where>
+        order by store_id asc
+        limit #{page.limitIndex}, #{page.pageSize}
+    </select>
+
+    <!--根据仓库编号查询仓库-->
+    <select id="findStoreByStoreNum" resultType="com.pn.entity.Store">
+        select * from store where store_num = #{storeNum}
+    </select>
+
+    <!--根据仓库名查找仓库-->
+    <select id="findStoreByStoreName" resultType="com.pn.entity.Store">
+        select * from store where store_name = #{storeName}
+    </select>
+</mapper>

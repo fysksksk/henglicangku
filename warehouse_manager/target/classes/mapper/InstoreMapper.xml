@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pn.mapper.InStoreMapper">
+
+    <!--添加入库单-->
+    <insert id="insertInStore">
+        insert into in_store values(
+            null, #{storeId}, #{productId}, #{inNum}, #{createBy}, now(), 0
+        )
+    </insert>
+
+    <!--根据id把入库单状态修改为入库状态-->
+    <update id="setIsInById">
+        update in_store set is_in = 1 where ins_id = #{inStoreId}
+    </update>
+
+    <!--查询入库单行数-->
+    <select id="findInStoreCount" resultType="java.lang.Integer">
+        select count(*) from in_store t1, product t2
+        where t1.product_id = t2.product_id
+        <if test="storeId != null and storeId != ''">
+            and t1.store_id = #{storeId}
+        </if>
+        <if test="productName != null and productName != ''">
+            and t2.product_name like concat('%', #{productName}, '%')
+        </if>
+        <if test="startTime != null and startTime != ''">
+            and t1.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            and t1.create_time &lt;= #{endTime}
+        </if>
+    </select>
+
+    <!--分页查询入库单-->
+    <select id="findInStorePage" resultType="com.pn.entity.InStore">
+        select t1.*, t2.product_name, t2.in_price, t3.store_name, t4.user_code
+        from in_store t1, product t2, store t3, user_info t4
+        where t1.product_id = t2.product_id and t1.store_id = t3.store_id and t1.create_by = t4.user_id
+        <if test="inStore.storeId != null and inStore.storeId != ''">
+            and t1.store_id = #{inStore.storeId}
+        </if>
+        <if test="inStore.productName != null and inStore.productName != ''">
+            and t2.product_name like concat('%', #{inStore.productName}, '%')
+        </if>
+        <if test="inStore.startTime != null and inStore.startTime != ''">
+            and t1.create_time &gt;= #{inStore.startTime}
+        </if>
+        <if test="inStore.endTime != null and inStore.endTime != ''">
+            and t1.create_time &lt;= #{inStore.endTime}
+        </if>
+        order by t1.create_time desc
+        limit #{page.limitIndex}, #{page.pageSize}
+    </select>
+</mapper>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.pn.mapper.UserMapper">
+
+    <!--根据用户id修改用户状态的方法-->
+    <update id="updateStateByUid">
+        update user_info set user_state = #{userState} where user_id = #{userId}
+    </update>
+
+    <!--根据用户ids把用户的状态设置为删除状态-->
+    <update id="setIsDeleteByUids">
+        update user_info set is_delete = 1 where user_id in
+        <foreach collection="list" open="(" close=")" separator="," item="userId">
+            #{userId}
+        </foreach>
+    </update>
+
+    <!--根据用户id修改用户昵称-->
+    <update id="updateUserNameByUserId">
+        update user_info
+        set user_name = #{userName}, update_by = #{updateBy}, update_time = now()
+        where user_id = #{userId}
+    </update>
+
+    <!--根据用户id修改密码-->
+    <update id="updatePwdByUserId">
+        update user_info set user_pwd = #{password} where user_id = #{userId}
+    </update>
+
+    <!--添加用户的方法-->
+    <insert id="insertUser">
+        insert into user_info values(
+            null, #{userCode}, #{userName}, #{userPwd}, null, 0, 0, #{createBy}, now(), null, null
+        )
+    </insert>
+
+    <!--根据用户名查询用户信息-->
+    <select id="findUserByCode" resultType="com.pn.entity.User">
+        select * from user_info where user_code = #{userCode} and is_delete = 0
+    </select>
+
+    <!--查询用户行数的方法-->
+    <select id="findUserRowCount" resultType="java.lang.Integer">
+        select count(*) from user_info
+        <where>
+            <if test="userCode != null and userCode != ''">
+                and user_code like concat('%', #{userCode}, '%')
+            </if>
+            <if test="userType != null and userType != ''">
+                and user_type = #{userType}
+            </if>
+            <if test="userState != null and userState != ''">
+                and user_state = #{userState}
+            </if>
+            and is_delete = 0
+        </where>
+    </select>
+
+    <!--分页查询用户的方法-->
+    <select id="findUserByPage" resultType="com.pn.entity.User">
+        select t1.*, t2.user_code getCode
+        from user_info t1, user_info t2
+        where t1.create_by = t2.user_id and t1.is_delete = 0
+        <if test="user.userCode != null and user.userCode != ''">
+            and t1.user_code like concat('%', #{user.userCode}, '%')
+        </if>
+        <if test="user.userType != null and user.userType != ''">
+            and t1.user_type = #{user.userType}
+        </if>
+        <if test="user.userState != null and user.userState != ''">
+            and t1.user_state = #{user.userState}
+        </if>
+        order by t1.create_time desc
+        limit #{page.limitIndex}, #{page.pageSize}
+    </select>
+</mapper>
